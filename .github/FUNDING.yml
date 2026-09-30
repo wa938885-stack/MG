@@ -1,0 +1,107 @@
+# Thesimport { chromium } from 'playwright';
+
+(async () => {
+  let browser;
+
+  try {
+    console.log('🚀 Starting browser...');
+
+    browser = await chromium.launch({
+      headless: true,
+    });
+
+    const page = await browser.newPage();
+
+    // Browser console messages
+    page.on('console', (msg) => {
+      const type = msg.type().toUpperCase();
+      console.log(`[BROWSER ${type}] ${msg.text()}`);
+    });
+
+    // JavaScript errors from the page
+    page.on('pageerror', (error) => {
+      console.error('[PAGE ERROR]', error.message);
+    });
+
+    // Failed network requests
+    page.on('requestfailed', (request) => {
+      console.error(
+        '[REQUEST FAILED]',
+        request.url(),
+        request.failure()?.errorText || 'Unknown error'
+      );
+    });
+
+    console.log('🌐 Opening http://localhost:3000 ...');
+
+    const response = await page.goto('http://localhost:3000', {
+      waitUntil: 'networkidle',
+      timeout: 10000,
+    });
+
+    // Check HTTP response
+    if (!response) {
+      throw new Error('No response received from the server.');
+    }
+
+    console.log(`✅ Server responded with status: ${response.status()}`);
+
+    if (!response.ok()) {
+      throw new Error(
+        `Server returned HTTP ${response.status()} ${response.statusText()}`
+      );
+    }
+
+    // Give the application a moment to finish rendering
+    await page.waitForTimeout(1000);
+
+    console.log(`📄 Page title: ${await page.title()}`);
+    console.log(`🔗 Current URL: ${page.url()}`);
+
+    console.log('✅ Test completed successfully.');
+  } catch (error) {
+    console.error('❌ Test failed:', error.message);
+
+    // Capture a screenshot to help debug failures
+    if (browser) {
+      try {
+        const pages = browser.contexts()[0]?.pages() || [];
+
+        if (pages.length > 0) {
+          await pages[0].screenshot({
+            path: 'test-server-error.png',
+            fullPage: true,
+          });
+
+          console.log('📸 Error screenshot saved as test-server-error.png');
+        }
+      } catch (screenshotError) {
+        console.error(
+          '⚠️ Could not save screenshot:',
+          screenshotError.message
+        );
+      }
+    }
+
+    process.exitCode = 1;
+  } finally {
+    if (browser) {
+      await browser.close();
+      console.log('🛑 Browser closed.');
+    }
+  }
+})();e are supported funding model platforms
+
+github: # Replace with up to 4 GitHub Sponsors-enabled usernames e.g., [user1, user2]
+patreon: # Replace with a single Patreon username
+open_collective: # Replace with a single Open Collective username
+ko_fi: # Replace with a single Ko-fi username
+tidelift: # Replace with a single Tidelift platform-name/package-name e.g., npm/babel
+community_bridge: # Replace with a single Community Bridge project-name e.g., cloud-foundry
+liberapay: # Replace with a single Liberapay username
+issuehunt: # Replace with a single IssueHunt username
+lfx_crowdfunding: # Replace with a single LFX Crowdfunding project-name e.g., cloud-foundry
+polar: # Replace with a single Polar username
+buy_me_a_coffee: # Replace with a single Buy Me a Coffee username
+thanks_dev: # Replace with a single thanks.dev username
+custom: # Replace with up to 4 custom sponsorship URLs e.g., ['link1', 'link2']
